@@ -45,9 +45,9 @@ export type Agent = {
 export type AgentRun = {
     id: string;
     agentId: string;
-    status: "pending" | "running" | "completed" | "failed";
+    status: "pending" | "running" | "done" | "error";
     input: Record<string, unknown>;
-    output?: Record<string, unknown>;
+    resultData?: Record<string, unknown>;
     createdAt: string;
     updatedAt: string;
     completedAt?: string;
@@ -232,13 +232,13 @@ export class AgDevClient {
             timeout?: number;
         } = {},
     ): Promise<AgentRun> {
-        const { pollInterval = 1000, timeout = 60000 } = options;
+        const { pollInterval = 1000, timeout = 0 } = options;
         const startTime = Date.now();
 
-        while (Date.now() - startTime < timeout) {
+        while (timeout === 0 || Date.now() - startTime < timeout) {
             const run = await this.getAgentRun(agentId, runId);
 
-            if (run.status === "completed" || run.status === "failed") {
+            if (run.status === "done" || run.status === "error") {
                 return run;
             }
 

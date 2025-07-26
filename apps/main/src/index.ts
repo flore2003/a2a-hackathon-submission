@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { resolve } from "path";
 
 import { config } from "./config.js";
+import { Agent, AgentRunResult } from "./agent.js";
+import { AgDevClient } from "./ag-dev.js";
 
 interface CliArgs {
     filePath: string;
@@ -50,7 +52,25 @@ function loadCompaniesFromCsv(filePath: string): string[] {
     }
 }
 
-function main() {
+function saveProfilesToJson(profiles: AgentRunResult<{ content: string }>[], outputPath: string): void {
+    try {
+        const originalCwd = process.env.INIT_CWD || process.cwd();
+        const absolutePath = resolve(originalCwd, outputPath);
+
+        // Write to file with pretty formatting
+        writeFileSync(absolutePath, JSON.stringify(profiles, null, 2), "utf-8");
+        console.log(`\nCompany profiles saved to: ${outputPath}`);
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error(`Error writing file: ${error.message}`);
+        } else {
+            console.error("Unknown error occurred while writing file");
+        }
+        process.exit(1);
+    }
+}
+
+async function main() {
     const { filePath } = parseArgs();
 
     console.log(`Loading companies from: ${filePath}`);
@@ -63,12 +83,28 @@ function main() {
         return;
     }
 
-    console.log(`Found ${companies.length} companies:`);
-    console.log("");
+    const agDevClient = new AgDevClient(config.AG_DEV_API_KEY);
 
-    companies.forEach((company, index) => {
-        console.log(`${index + 1}. ${company}`);
-    });
+    const companyProfileAgent = new Agent<
+        {
+            company: string;
+        },
+        {
+            content: string;
+        }
+    >(agDevClient, config.COMPANY_PROFILE_AGENT_ID);
+
+    console.log(`Processing ${companies.length} companies...`);
+    const companyProfiles = await companyProfileAgent.runBatch(companies.map((company) => ({ company })));
+
+    // Generate output filename with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
+    const outputPath = `company-profiles-${timestamp}.json`;
+
+    // Save to JSON
+    saveProfilesToJson(companyProfiles, outputPath);
+
+    console.log("Done!");
 }
 
 // Run the CLI tool
