@@ -3,9 +3,7 @@
 import { readFileSync } from "fs";
 import { resolve } from "path";
 
-import dotenv from "dotenv";
-
-dotenv.config();
+import { config } from "./config.js";
 
 interface CliArgs {
     filePath: string;

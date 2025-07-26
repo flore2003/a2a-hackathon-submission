@@ -9,9 +9,7 @@
     "lint": "eslint src/"
   },
   "dependencies": {
-    "@arcadeai/arcadejs": "^1.9.0",
     "dotenv": "^17.2.1",
-    "fastmcp": "^3.11.0",
     "zod": "^4.0.10"
   },
   "devDependencies": {
