@@ -27,6 +27,8 @@ const configSchema = z.object({
 
     // Agent Configs
     COMPANY_PROFILE_AGENT_ID: z.string(),
+    COMPANY_CONTACTS_AGENT_ID: z.string(),
+    COMPANY_CONTACT_PROFILE_AGENT_ID: z.string(),
 });
 
 export const config = configSchema.parse(process.env);
