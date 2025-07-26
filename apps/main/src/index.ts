@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { resolve } from "path";
 
 import { config } from "./config.js";
-import { Agent, AgentRunResult } from "./agent.js";
+import { Agent } from "./agent.js";
 import { AgDevClient } from "./ag-dev.js";
 
 interface CliArgs {
@@ -52,7 +52,7 @@ function loadCompaniesFromCsv(filePath: string): string[] {
     }
 }
 
-function saveProfilesToJson(profiles: AgentRunResult<{ content: string }>[], outputPath: string): void {
+function saveProfilesToJson(profiles: { company: string; content: string }[], outputPath: string): void {
     try {
         const originalCwd = process.env.INIT_CWD || process.cwd();
         const absolutePath = resolve(originalCwd, outputPath);
@@ -90,16 +90,21 @@ async function main() {
             company: string;
         },
         {
-            content: string;
+            result: string;
         }
     >(agDevClient, config.COMPANY_PROFILE_AGENT_ID);
 
     console.log(`Processing ${companies.length} companies...`);
-    const companyProfiles = await companyProfileAgent.runBatch(companies.map((company) => ({ company })));
+    const companyProfileResults = await companyProfileAgent.runBatch(companies.map((company) => ({ company })));
 
     // Generate output filename with timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
     const outputPath = `company-profiles-${timestamp}.json`;
+
+    const companyProfiles = companyProfileResults.map((result) => ({
+        company: result.input.company,
+        content: result.resultData?.result || "",
+    }));
 
     // Save to JSON
     saveProfilesToJson(companyProfiles, outputPath);

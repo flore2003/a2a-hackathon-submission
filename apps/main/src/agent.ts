@@ -7,10 +7,10 @@ import {
     CreateAgentRunRequest,
 } from "./ag-dev.js";
 
-export type AgentRunResult<TOutput = Record<string, unknown>> = {
+export type AgentRunResult<TInput = Record<string, unknown>, TOutput = Record<string, unknown>> = {
     id: string;
     status: AgentRun["status"];
-    input: Record<string, unknown>;
+    input: TInput;
     resultData?: TOutput;
     createdAt: string;
     updatedAt: string;
@@ -86,7 +86,7 @@ export class Agent<TInput = Record<string, unknown>, TOutput = Record<string, un
             pollInterval?: number;
             timeout?: number;
         },
-    ): Promise<AgentRunResult<TOutput>> {
+    ): Promise<AgentRunResult<TInput, TOutput>> {
         // Create the run
         const run = await this.client.createAgentRun(this.agentId, input as CreateAgentRunRequest);
 
@@ -96,7 +96,7 @@ export class Agent<TInput = Record<string, unknown>, TOutput = Record<string, un
         return {
             id: completedRun.id,
             status: completedRun.status,
-            input: completedRun.input,
+            input: completedRun.input as TInput,
             resultData: completedRun.resultData as TOutput,
             createdAt: completedRun.createdAt,
             updatedAt: completedRun.updatedAt,
@@ -115,12 +115,12 @@ export class Agent<TInput = Record<string, unknown>, TOutput = Record<string, un
     /**
      * Get the result of a specific run
      */
-    async getRunResult(runId: string): Promise<AgentRunResult<TOutput>> {
+    async getRunResult(runId: string): Promise<AgentRunResult<TInput, TOutput>> {
         const run = await this.client.getAgentRun(this.agentId, runId);
         return {
             id: run.id,
             status: run.status,
-            input: run.input,
+            input: run.input as TInput,
             resultData: run.resultData as TOutput,
             createdAt: run.createdAt,
             updatedAt: run.updatedAt,
@@ -137,13 +137,13 @@ export class Agent<TInput = Record<string, unknown>, TOutput = Record<string, un
             pollInterval?: number;
             timeout?: number;
         },
-    ): Promise<AgentRunResult<TOutput>> {
+    ): Promise<AgentRunResult<TInput, TOutput>> {
         const completedRun = await this.client.waitForAgentRun(this.agentId, runId, options);
 
         return {
             id: completedRun.id,
             status: completedRun.status,
-            input: completedRun.input,
+            input: completedRun.input as TInput,
             resultData: completedRun.resultData as TOutput,
             createdAt: completedRun.createdAt,
             updatedAt: completedRun.updatedAt,
@@ -154,12 +154,12 @@ export class Agent<TInput = Record<string, unknown>, TOutput = Record<string, un
     /**
      * Get all runs for this agent
      */
-    async getAllRuns(): Promise<AgentRunResult<TOutput>[]> {
+    async getAllRuns(): Promise<AgentRunResult<TInput, TOutput>[]> {
         const response = await this.client.listAgentRuns(this.agentId);
         return response.items.map((run) => ({
             id: run.id,
             status: run.status,
-            input: run.input,
+            input: run.input as TInput,
             resultData: run.resultData as TOutput,
             createdAt: run.createdAt,
             updatedAt: run.updatedAt,
@@ -176,7 +176,7 @@ export class Agent<TInput = Record<string, unknown>, TOutput = Record<string, un
             pollInterval?: number;
             timeout?: number;
         },
-    ): Promise<AgentRunResult<TOutput>[]> {
+    ): Promise<AgentRunResult<TInput, TOutput>[]> {
         // Start all runs
         const runIds = await Promise.all(inputs.map((input) => this.startRun(input)));
 
