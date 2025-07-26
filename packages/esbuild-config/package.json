@@ -1,0 +1,12 @@
+{
+  "name": "@repo/esbuild-config",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./config.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.0"
+  }
+}
