@@ -1,0 +1,26 @@
+{
+  "name": "@repo/main",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "run": "tsx src/index.ts",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@arcadeai/arcadejs": "^1.9.0",
+    "dotenv": "^17.2.1",
+    "fastmcp": "^3.11.0",
+    "zod": "^4.0.10"
+  },
+  "devDependencies": {
+    "@repo/esbuild-config": "*",
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@types/express": "^5.0.1",
+    "@types/node": "^22",
+    "tsx": "^4.19.2",
+    "typescript": "5.8.3"
+  }
+}
