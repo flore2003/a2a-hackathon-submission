@@ -15,8 +15,8 @@ function parseArgs(): CliArgs {
     const args = process.argv.slice(2);
 
     if (args.length === 0 || !args[0]) {
-        console.error("Usage: npm run run <csv-file-path>");
-        console.error("Example: npm run run ./leads.csv");
+        console.error("Usage: npm -w @repo/main start <csv-file-path>");
+        console.error("Example: npm -w @repo/main start ./leads.csv");
         process.exit(1);
     }
 
