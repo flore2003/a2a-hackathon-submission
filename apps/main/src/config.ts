@@ -29,6 +29,7 @@ const configSchema = z.object({
     COMPANY_PROFILE_AGENT_ID: z.string(),
     COMPANY_CONTACTS_AGENT_ID: z.string(),
     COMPANY_CONTACT_PROFILE_AGENT_ID: z.string(),
+    CREATE_OUTREACH_EMAIL_AGENT_ID: z.string(),
 });
 
 export const config = configSchema.parse(process.env);

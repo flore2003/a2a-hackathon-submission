@@ -56,6 +56,7 @@ function saveResults(
     companyProfiles: { company: string; content: string }[],
     companyContacts: { company: string; contacts: { name: string; role: string; email: string }[] }[],
     contactProfiles: { company: string; contact: string; content: string }[],
+    outreachEmails: { company: string; contact: string; email: string; content: string }[],
     outputPath: string,
 ): void {
     try {
@@ -66,6 +67,7 @@ function saveResults(
             companyProfiles,
             companyContacts,
             contactProfiles,
+            outreachEmails,
         };
 
         // Write to file with pretty formatting
@@ -128,8 +130,18 @@ async function main() {
         }
     >(agDevClient, config.COMPANY_CONTACT_PROFILE_AGENT_ID);
 
-    // Generate timestamp for consistent file naming
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
+    const createOutreachEmailAgent = new Agent<
+        {
+            company: string;
+            contact: string;
+            email: string;
+            companyProfile: string;
+            contactProfile: string;
+        },
+        {
+            result: string;
+        }
+    >(agDevClient, config.CREATE_OUTREACH_EMAIL_AGENT_ID);
 
     console.log(`Processing ${companies.length} companies...`);
 
@@ -139,23 +151,6 @@ async function main() {
         companyProfileAgent.runBatch(companies.map((company) => ({ company }))),
         companyContactsAgent.runBatch(companies.map((company) => ({ company }))),
     ]);
-
-    // Prepare and save company profiles
-    const companyProfiles = companyProfileResults.map((result) => ({
-        company: result.input.company,
-        content: result.resultData?.result || "",
-    }));
-
-    // Prepare and save company contacts
-    const companyContacts = companyContactsResults.map((result) => ({
-        company: result.input.company,
-        contacts: result.resultData?.contacts || [],
-    }));
-
-    // Save step 1 results
-    console.log("Saving step 1 results (company profiles and contacts)...");
-    const step1OutputPath = `step1-company-data-${timestamp}.json`;
-    saveResults(companyProfiles, companyContacts, [], step1OutputPath);
 
     // Prepare contact profile inputs from the contacts results
     const contactProfileInputs: { company: string; contact: string }[] = [];
@@ -175,40 +170,84 @@ async function main() {
     const contactProfileResults =
         contactProfileInputs.length > 0 ? await companyContactProfileAgent.runBatch(contactProfileInputs) : [];
 
-    // Prepare contact profiles
+    // Prepare outreach email inputs by combining all the previous results
+    const outreachEmailInputs: {
+        company: string;
+        contact: string;
+        email: string;
+        companyProfile: string;
+        contactProfile: string;
+    }[] = [];
+
+    // Create a map for quick lookups
+    const companyProfileMap = new Map(
+        companyProfileResults.map((result) => [result.input.company, result.resultData?.result || ""]),
+    );
+    const contactProfileMap = new Map(
+        contactProfileResults.map((result) => [
+            `${result.input.company}-${result.input.contact}`,
+            result.resultData?.result || "",
+        ]),
+    );
+
+    // Build outreach email inputs
+    companyContactsResults.forEach((contactsResult) => {
+        const company = contactsResult.input.company;
+        const companyProfile = companyProfileMap.get(company) || "";
+
+        if (contactsResult.resultData?.contacts) {
+            contactsResult.resultData.contacts.forEach((contact) => {
+                const contactProfile = contactProfileMap.get(`${company}-${contact.name}`) || "";
+                outreachEmailInputs.push({
+                    company,
+                    contact: contact.name,
+                    email: contact.email,
+                    companyProfile,
+                    contactProfile,
+                });
+            });
+        }
+    });
+
+    // Run outreach email agent for each contact
+    console.log(`Running outreach email agent for ${outreachEmailInputs.length} contacts...`);
+    const outreachEmailResults =
+        outreachEmailInputs.length > 0 ? await createOutreachEmailAgent.runBatch(outreachEmailInputs) : [];
+
+    // Generate output filename with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
+    const outputPath = `company-results-${timestamp}.json`;
+
+    // Prepare results for output
+    const companyProfiles = companyProfileResults.map((result) => ({
+        company: result.input.company,
+        content: result.resultData?.result || "",
+    }));
+
+    const companyContacts = companyContactsResults.map((result) => ({
+        company: result.input.company,
+        contacts: result.resultData?.contacts || [],
+    }));
+
     const contactProfiles = contactProfileResults.map((result) => ({
         company: result.input.company,
         contact: result.input.contact,
         content: result.resultData?.result || "",
     }));
 
-    // Save step 2 results (contact profiles only)
-    console.log("Saving step 2 results (contact profiles)...");
-    const step2OutputPath = `step2-contact-profiles-${timestamp}.json`;
-    try {
-        const originalCwd = process.env.INIT_CWD || process.cwd();
-        const absolutePath = resolve(originalCwd, step2OutputPath);
-        writeFileSync(absolutePath, JSON.stringify(contactProfiles, null, 2), "utf-8");
-        console.log(`Contact profiles saved to: ${step2OutputPath}`);
-    } catch (error) {
-        if (error instanceof Error) {
-            console.error(`Error writing contact profiles file: ${error.message}`);
-        } else {
-            console.error("Unknown error occurred while writing contact profiles file");
-        }
-    }
+    const outreachEmails = outreachEmailResults.map((result) => ({
+        company: result.input.company,
+        contact: result.input.contact,
+        email: result.input.email,
+        content: result.resultData?.result || "",
+    }));
 
-    // Save final combined results
-    console.log("Saving final combined results...");
-    const finalOutputPath = `final-company-results-${timestamp}.json`;
-    saveResults(companyProfiles, companyContacts, contactProfiles, finalOutputPath);
+    // Save all results to JSON
+    saveResults(companyProfiles, companyContacts, contactProfiles, outreachEmails, outputPath);
 
     console.log("Done!");
     console.log(`Processed ${companies.length} companies, found ${contactProfileInputs.length} contacts total.`);
-    console.log("\nFiles created:");
-    console.log(`- ${step1OutputPath} (company profiles + contacts)`);
-    console.log(`- ${step2OutputPath} (contact profiles)`);
-    console.log(`- ${finalOutputPath} (all results combined)`);
+    console.log(`Generated ${outreachEmailResults.length} personalized outreach emails.`);
 }
 
 // Run the CLI tool
