@@ -1,135 +1,193 @@
-# Turborepo starter
+# A2A Hackathon Submission: Intelligent Lead Generation & Outreach Automation
 
-This Turborepo starter is maintained by the Turborepo core team.
+> **Agent-to-Agent automation system that transforms company names into personalized outreach campaigns**
 
-## Using this example
+## 🎯 Project Overview
 
-Run the following command:
+This project demonstrates the power of **Agent-to-Agent (A2A) automation** by orchestrating multiple AI agents to create a complete lead generation and outreach pipeline. Starting with just a list of company names, the system automatically researches companies, finds contacts, profiles decision-makers, and generates personalized outreach emails—all through intelligent agent collaboration.
 
-```sh
-npx create-turbo@latest
+## 🏗️ Architecture
+
+The system consists of two main applications working in harmony:
+
+### 🤖 Main Application (`apps/main/`)
+A TypeScript CLI tool that orchestrates multiple AI agents in a sophisticated pipeline:
+
+1. **Company Profile Agent** - Researches and profiles target companies
+2. **Company Contacts Agent** - Identifies key decision-makers and their contact information  
+3. **Contact Profile Agent** - Creates detailed profiles of individual contacts
+4. **Outreach Email Agent** - Generates personalized outreach emails using all gathered intelligence
+
+### 📧 Arcade MCP Server (`apps/arcade-mcp/`)
+A Model Context Protocol (MCP) server that bridges AI agents with real-world actions:
+
+- Integrates with **Arcade.dev** for Gmail automation
+- Creates draft emails directly in Gmail accounts
+- Enables seamless transition from AI-generated content to actionable outreach
+
+## 🚀 Key Features
+
+- **Multi-Agent Pipeline**: Four specialized agents work in sequence and parallel to maximize efficiency
+- **Intelligent Research**: Deep company and contact profiling using advanced AI capabilities
+- **Personalized Outreach**: Context-aware email generation tailored to each recipient
+- **Gmail Integration**: Direct draft creation through Arcade AI's Gmail tool
+- **Batch Processing**: Concurrent agent execution for scalable lead processing
+- **Comprehensive Output**: Structured JSON results with detailed company profiles, contacts, and generated emails
+
+## 🛠️ Tech Stack
+
+- **TypeScript** - Type-safe development across all components
+- **Node.js** - Runtime environment for all applications
+- **Turbo** - Monorepo management and build orchestration
+- **Arcade AI** - Real-world action execution and Gmail integration
+- **FastMCP** - Model Context Protocol server implementation
+- **Zod** - Runtime type validation and schema enforcement
+
+## 📦 Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd a2a-hackathon-submission
+
+# Install dependencies
+npm install
+
+# Build all applications
+npm run build
 ```
 
-## What's inside?
+## ⚙️ Configuration
 
-This Turborepo includes the following packages/apps:
+### Environment Variables
 
-### Apps and Packages
+Create `.env` files in both application directories:
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+**`apps/main/.env`:**
+```env
+AG_DEV_API_KEY=your_ag_dev_api_key
+COMPANY_PROFILE_AGENT_ID=agent_id_for_company_profiling
+COMPANY_CONTACTS_AGENT_ID=agent_id_for_contact_finding
+COMPANY_CONTACT_PROFILE_AGENT_ID=agent_id_for_contact_profiling
+CREATE_OUTREACH_EMAIL_AGENT_ID=agent_id_for_email_generation
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+**`apps/arcade-mcp/.env`:**
+```env
+ARCADE_API_KEY=your_arcade_api_key
+ARCADE_USER_ID=your_arcade_user_id
 ```
 
-### Develop
+## 🏃‍♂️ Usage
 
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+### 1. Prepare Your Lead List
+Create a CSV file with company names (one per line):
+```csv
+HockeyStack
+Notion
+Figma
+Linear
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+### 2. Run the Main Pipeline
+```bash
+npm -w @repo/main start ./your-companies.csv
 ```
 
-### Remote Caching
+The system will:
+- Research each company comprehensively
+- Find key decision-makers and their contact information
+- Create detailed profiles of each contact
+- Generate personalized outreach emails
+- Output results to a timestamped JSON file
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+### 3. Start the MCP Server (Optional)
+```bash
+npm -w @repo/arcade-mcp run
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+This enables integration with tools like Claude Desktop for direct Gmail draft creation.
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+## 📊 Sample Output
 
+The system generates comprehensive results including:
+
+```json
+{
+  "companyProfiles": [
+    {
+      "company": "HockeyStack",
+      "content": "Detailed company intelligence report with funding, leadership, recent news..."
+    }
+  ],
+  "companyContacts": [
+    {
+      "company": "HockeyStack", 
+      "contacts": [
+        {
+          "name": "Buğra Gündüz",
+          "role": "Co-Founder & CEO",
+          "email": "bugra@hockeystack.com"
+        }
+      ]
+    }
+  ],
+  "contactProfiles": [...],
+  "outreachEmails": [...]
+}
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+## 🎪 A2A Innovation Highlights
+
+### Agent Orchestration
+- **Parallel Processing**: Company profiling and contact finding run simultaneously
+- **Sequential Dependencies**: Contact profiling waits for contact discovery
+- **Batch Operations**: All agents support concurrent execution for scalability
+
+### Cross-System Integration
+- **AI-to-AI Communication**: Agents share context and build upon each other's work
+- **AI-to-Action Bridge**: MCP server translates AI outputs into real-world Gmail actions
+- **Structured Data Flow**: Type-safe data passing between all system components
+
+### Intelligent Automation
+- **Context Preservation**: Each agent builds upon previous agent outputs
+- **Dynamic Adaptation**: Email generation adapts to company size, industry, and contact role
+- **Quality Control**: Comprehensive error handling and data validation throughout
+
+## 🏆 Hackathon Value Proposition
+
+This project showcases the transformative potential of A2A automation by:
+
+1. **Eliminating Manual Research**: What typically takes hours of manual work per company is completed in minutes
+2. **Ensuring Consistency**: Every company receives the same depth of research and personalization
+3. **Scaling Outreach**: Process hundreds of companies with the same effort as processing one
+4. **Maintaining Quality**: AI agents ensure every email is personalized and contextually relevant
+5. **Enabling Action**: Direct integration with Gmail makes the pipeline immediately actionable
+
+## 🚀 Development
+
+```bash
+# Run in development mode
+npm run dev
+
+# Lint all code
+npm run lint
+
+# Format code
+npm run format
+
+# Type checking
+npm run check-types
 ```
 
-## Useful Links
+## 🤝 Contributing
 
-Learn more about the power of Turborepo:
+This is a hackathon submission showcasing A2A automation capabilities. The codebase demonstrates production-ready patterns for agent orchestration, error handling, and real-world integration.
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**Built for the A2A Hackathon** - Demonstrating the future of intelligent automation through agent collaboration 🤖✨
